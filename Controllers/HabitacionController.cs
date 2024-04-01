@@ -125,23 +125,39 @@ namespace HotelTransilvania.Controllers
         public class FiltroHabitacion
         {
             public int CantidadPersonas { get; set; }
+            public string TipoHabitacion { get; set;}
+            public DateTime FechaInicio { get; set; }
+            public DateTime FechaFin { get; set; }
+
+
         }
 
         [HttpGet]
-        [Route("buscar")] 
+        [Route("buscar")]
         public async Task<ActionResult<IEnumerable<Habitacion>>> BuscarHabitacion([FromQuery] FiltroHabitacion filtros)
         {
-            var habitacion = await _context.Habitacion
-                .Where(h => h.Capacidad == filtros.CantidadPersonas)
+            // Obtener las reservas que intersectan con el rango de fechas proporcionado
+            var reservasEnFecha = await _context.Reserva
+                .Where(r =>
+                    (r.FechaInicio <= filtros.FechaFin && r.FechaFin >= filtros.FechaInicio) ||
+                    (r.FechaInicio >= filtros.FechaInicio && r.FechaFin <= filtros.FechaFin))
+                .Select(r => r.IdHabitacion)
                 .ToListAsync();
 
+            // Obtener las habitaciones que cumplen con los filtros de capacidad y tipo
+            var habitacionesDisponibles = await _context.Habitacion
+                .Where(h => h.Capacidad >= filtros.CantidadPersonas)
+                .Where(h => h.Tipo == filtros.TipoHabitacion)
+                .Where(h => !reservasEnFecha.Contains(h.Id))
+                .ToListAsync();
 
-            if (habitacion == null)
+            if (habitacionesDisponibles == null || habitacionesDisponibles.Count == 0)
             {
                 return NotFound();
             }
 
-            return habitacion;
-        }   
+            return habitacionesDisponibles;
+        }
+
     }
 }
