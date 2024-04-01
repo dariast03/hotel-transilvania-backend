@@ -14,6 +14,7 @@ namespace HotelTransilvania.Context
         public DbSet<Usuario> Usuario { get; set; }
         public DbSet<Cliente> Cliente { get; set; }
         public DbSet<Recepcionista> Recepcionista { get; set; }
+        public DbSet<Habitacion> Habitacion { get; set; } = default!;
 
     }
 }

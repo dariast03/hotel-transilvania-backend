@@ -5,7 +5,7 @@
 namespace HotelTransilvania.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMig : Migration
+    public partial class inicial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
