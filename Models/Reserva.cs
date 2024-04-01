@@ -17,9 +17,9 @@ namespace HotelTransilvania.Models
         public string Estado { get; set; }
         public int IdCliente { get; set; }
         [ForeignKey(nameof(IdCliente))]
-        public Cliente Cliente { get; set; }
+        public Cliente? Cliente { get; set; }
         public int IdHabitacion { get; set; }
         [ForeignKey(nameof(IdHabitacion))]
-        public Habitacion Habitacion { get; set; }
+        public Habitacion? Habitacion { get; set; }
     }
 }
