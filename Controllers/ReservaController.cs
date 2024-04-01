@@ -25,10 +25,20 @@ namespace HotelTransilvania.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Reserva>>> GetReserva()
         {
-          if (_context.Reserva == null)
-          {
-              return NotFound();
-          }
+            if (_context.Reserva == null)
+            {
+                return NotFound();
+            }
+            return await _context.Reserva.ToListAsync();
+        }
+
+        [HttpGet("pendientes")]
+        public async Task<ActionResult<IEnumerable<Reserva>>> GetReservasPendientes()
+        {
+            if (_context.Reserva == null)
+            {
+                return NotFound();
+            }
             return await _context.Reserva.ToListAsync();
         }
 
@@ -36,10 +46,10 @@ namespace HotelTransilvania.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Reserva>> GetReserva(int id)
         {
-          if (_context.Reserva == null)
-          {
-              return NotFound();
-          }
+            if (_context.Reserva == null)
+            {
+                return NotFound();
+            }
             var reserva = await _context.Reserva.FindAsync(id);
 
             if (reserva == null)
@@ -60,7 +70,69 @@ namespace HotelTransilvania.Controllers
                 return BadRequest();
             }
 
-            reserva.Estado = "Pendiente"; //Rechazado, Reservado, Cancelado//
+            //   reserva.Estado = "Pendiente"; //Rechazado, Reservado, Cancelado//
+            _context.Entry(reserva).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ReservaExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+
+        [HttpPut("confirmar/{id}")]
+        public async Task<IActionResult> ConfirmarReserva(int id, Reserva reserva)
+        {
+            if (id != reserva.Id)
+            {
+                return BadRequest();
+            }
+
+            reserva.Estado = "Reservado";
+            _context.Entry(reserva).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ReservaExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+
+        [HttpPut("rechazar/{id}")]
+        public async Task<IActionResult> RechazarReserva(int id, Reserva reserva)
+        {
+            if (id != reserva.Id)
+            {
+                return BadRequest();
+            }
+
+            reserva.Estado = "Rechazado";
             _context.Entry(reserva).State = EntityState.Modified;
 
             try
@@ -87,10 +159,10 @@ namespace HotelTransilvania.Controllers
         [HttpPost]
         public async Task<ActionResult<Reserva>> PostReserva(Reserva reserva)
         {
-          if (_context.Reserva == null)
-          {
-              return Problem("Entity set 'RegisterLoginContext.Reserva'  is null.");
-          }
+            if (_context.Reserva == null)
+            {
+                return Problem("Entity set 'RegisterLoginContext.Reserva'  is null.");
+            }
             _context.Reserva.Add(reserva);
             await _context.SaveChangesAsync();
 
