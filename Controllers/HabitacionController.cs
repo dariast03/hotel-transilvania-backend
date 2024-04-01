@@ -120,5 +120,28 @@ namespace HotelTransilvania.Controllers
         {
             return (_context.Habitacion?.Any(e => e.Id == id)).GetValueOrDefault();
         }
+
+
+        public class FiltroHabitacion
+        {
+            public int CantidadPersonas { get; set; }
+        }
+
+        [HttpGet]
+        [Route("buscar")] 
+        public async Task<ActionResult<IEnumerable<Habitacion>>> BuscarHabitacion([FromQuery] FiltroHabitacion filtros)
+        {
+            var habitacion = await _context.Habitacion
+                .Where(h => h.Capacidad == filtros.CantidadPersonas)
+                .ToListAsync();
+
+
+            if (habitacion == null)
+            {
+                return NotFound();
+            }
+
+            return habitacion;
+        }   
     }
 }
