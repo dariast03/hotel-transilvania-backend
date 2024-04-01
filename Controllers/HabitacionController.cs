@@ -125,6 +125,7 @@ namespace HotelTransilvania.Controllers
         public class FiltroHabitacion
         {
             public int CantidadPersonas { get; set; }
+            public string TipoHabitacion {  get; set; }
         }
 
         [HttpGet]
@@ -133,6 +134,7 @@ namespace HotelTransilvania.Controllers
         {
             var habitacion = await _context.Habitacion
                 .Where(h => h.Capacidad == filtros.CantidadPersonas)
+                .Where(h => h.Tipo == filtros.TipoHabitacion)
                 .ToListAsync();
 
 
