@@ -1,4 +1,6 @@
 using HotelTransilvania.Context;
+using HotelTransilvania.Models;
+using HotelTransilvania.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +13,12 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add EmailService
+var smtpSettings = builder.Configuration.GetSection("SmtpSettings").Get<SmptSettings>();
+builder.Services.AddSingleton(new EmailService(smtpSettings.SmtpServer, smtpSettings.SmtpPort, smtpSettings.SmtpUsername, smtpSettings.SmtpPassword));
+
+
 
 var app = builder.Build();
 
