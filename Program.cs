@@ -18,6 +18,30 @@ builder.Services.AddSwaggerGen();
 var smtpSettings = builder.Configuration.GetSection("SmtpSettings").Get<SmptSettings>();
 builder.Services.AddSingleton(new EmailService(smtpSettings.SmtpServer, smtpSettings.SmtpPort, smtpSettings.SmtpUsername, smtpSettings.SmtpPassword));
 
+// Add Cors Config
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ConfigCors",
+           builder => builder
+               .WithOrigins(
+               "http://localhost:5173",
+               "http://127.0.0.1:5173",
+                "http://localhost:5174",
+               "http://127.0.0.1:5174",
+                 "http://192.168.0.12:5174",
+                                  "http://192.168.0.12:5173",
+               "http://localhost:4173",
+               "http://127.0.0.1:4173",
+               "https://tarija.upds.edu.bo"
+               )
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowCredentials());
+});
+
+// Lowercase URL
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
+
 
 
 var app = builder.Build();
@@ -38,5 +62,6 @@ app.MapControllers();
 app.UseAuthentication();
 
 app.UseAuthorization();
+app.UseCors("ConfigCors");
 
 app.Run();
