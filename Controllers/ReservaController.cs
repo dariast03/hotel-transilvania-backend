@@ -88,7 +88,7 @@ namespace HotelTransilvania.Controllers
             {
                 return NotFound();
             }
-            reserva.Estado = "Reservado";
+            reserva.Estado = "Confirmada";//Confirmada
             _context.Entry(reserva).State = EntityState.Modified;
             var cliente = await _context.Cliente.FindAsync(reserva.IdCliente);
             if (cliente == null)
