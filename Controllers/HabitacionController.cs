@@ -23,8 +23,9 @@ namespace HotelTransilvania.Controllers
         }
 
         // GET: api/Habitacions
+        // GET: api/Habitacions
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Habitacion>>> GetHabitacion()
+        public async Task<ActionResult<IEnumerable<object>>> GetHabitacion()
         {
             if (_context.Habitacion == null)
             {
@@ -34,21 +35,24 @@ namespace HotelTransilvania.Controllers
             var clientesFrecuentes = _context.Cliente.Where(c => c.Frecuencia == "Frecuente").ToList();
             var promociones = await _context.Promocion.ToListAsync();
 
+            var habitacionesConDescuento = new List<object>();
+
             foreach (var habitacion in habitaciones)
             {
+                var precioConDescuento = habitacion.Precio;
                 foreach (var cliente in clientesFrecuentes)
                 {
                     foreach (var promocion in promociones)
                     {
                         // Aplica la promoción a la habitación
-                        habitacion.Precio -= habitacion.Precio * promocion.Descuento;
+                        precioConDescuento -= precioConDescuento * promocion.Descuento;
                     }
                 }
-                _context.Entry(habitacion).State = EntityState.Modified;
+                habitacionesConDescuento.Add(new { habitacion, precioConDescuento });
             }
-            await _context.SaveChangesAsync();
-            return habitaciones;
+            return habitacionesConDescuento;
         }
+
 
         // GET: api/Habitacions/5
         [HttpGet("{id}")]
