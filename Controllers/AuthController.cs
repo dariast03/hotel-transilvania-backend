@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using HotelTransilvania.Models;
 using Microsoft.CodeAnalysis.Scripting;
+using Org.BouncyCastle.Crypto.Generators;
 
 namespace HotelTransilvania.Controllers
 {
@@ -37,8 +38,6 @@ namespace HotelTransilvania.Controllers
 
         }
 
-        #region ROUTES
-
         [HttpPost]
         [Route("login")]
         public async Task<ActionResult> Login([FromBody] LoginDto loginFormUsuario)
@@ -47,7 +46,9 @@ namespace HotelTransilvania.Controllers
 
             // verificar passwords
 
-            bool verifiedPassword = BCrypt.Net.BCrypt.Verify(contrasenaSinEncruptar, usuarioEncontrado.Contrasena);
+            Usuario? usuarioEncontrado = await _context.Usuario.FirstOrDefaultAsync(x => x.Correo == loginFormUsuario.Correo);
+
+            bool verifiedPassword = BCrypt.Net.BCrypt.Verify(loginFormUsuario.Contraseña, usuarioEncontrado!.Contraseña);
 
 
             if (usuarioEncontrado is null)
@@ -72,12 +73,14 @@ namespace HotelTransilvania.Controllers
         }
 
         [HttpGet, Authorize]
-        [Route("perfil")]
+        [Route("Refresh")]
         public async Task<ActionResult> GetProfile()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
 
             int idUsuario = int.Parse(identity.Claims.FirstOrDefault(c => c.Type == "Id").Value);
+
+            Usuario? usuarioEncontrado = await _context.Usuario.FirstOrDefaultAsync(x => x.Id == idUsuario);
 
             if (idUsuario == 0)
             {
@@ -108,7 +111,6 @@ namespace HotelTransilvania.Controllers
                 data = new
                 {
                     usuario = usuarioEncontrado,
-                    perfil,
                     token = _jwtService.GenerateToken(usuarioEncontrado)
                 }
             });
@@ -118,9 +120,9 @@ namespace HotelTransilvania.Controllers
 
 
         [HttpPost, Route("register")]
-        public async Task<ActionResult> Register(Persona persona)
+        public async Task<ActionResult> Registrar(Cliente cliente)
         {
-            if (await _context.Usuario.FirstOrDefaultAsync(x => x.Correo == persona!.Cliente!.Usuario!.Correo) != null)
+            if (await _context.Usuario.FirstOrDefaultAsync(x => x.Correo == cliente!.Usuario!.Correo) != null)
             {
                 return BadRequest(new
                 {
@@ -130,26 +132,16 @@ namespace HotelTransilvania.Controllers
                 });
             }
 
-            if (await _context.Persona.FirstOrDefaultAsync(x => x.NroDocumento == persona.NroDocumento) != null)
-            {
-                return BadRequest(new
-                {
-                    msg = "El nro de documento ya se encuentra registrado",
-                    status = 400,
-                    code = "DUPLICATE_DOCUMENT",
-                });
-            }
-
-            persona.Perfil.Usuario.Contrasena = BCrypt.Net.BCrypt.HashPassword(persona.Perfil.Usuario.Contrasena);
+            cliente.Usuario.Contraseña = BCrypt.Net.BCrypt.HashPassword(cliente.Usuario.Contraseña);
 
 
-            _context.Persona.Add(persona);
+            _context.Cliente.Add(cliente);
             await _context.SaveChangesAsync();
 
 
 
 
-            Usuario? usuario = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == persona.Perfil.Usuario.Id);
+            Usuario? usuario = await _context.Usuario.FirstOrDefaultAsync(x => x.Id == cliente.Usuario.Id);
 
 
 
