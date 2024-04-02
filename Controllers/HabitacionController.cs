@@ -107,28 +107,28 @@ namespace HotelTransilvania.Controllers
                 return NotFound();
             }
 
-            var reservas = await _context.Reserva
-                                .Where(r => r.IdHabitacion == id && r.Estado == "Confirmada")
-                                .OrderBy(r => r.FechaInicio)
-                                .ToListAsync();
+            //var reservas = await _context.Reserva
+            //                    .Where(r => r.IdHabitacion == id && r.Estado == "Confirmada")
+            //                    .OrderBy(r => r.FechaInicio)
+            //                    .ToListAsync();
 
-            DateTime fechaInicioDisponible = DateTime.Now.Date;
-            DateTime fechaFinDisponible = DateTime.MaxValue.Date;
+            //DateTime fechaInicioDisponible = DateTime.Now.Date;
+            //DateTime fechaFinDisponible = DateTime.MaxValue.Date;
 
-            foreach (var reserva in reservas)
-            {
-                if (reserva.FechaInicio > fechaInicioDisponible)
-                {
-                    fechaInicioDisponible = reserva.FechaFin.AddDays(1).Date;
-                }
+            //foreach (var reserva in reservas)
+            //{
+            //    if (reserva.FechaInicio > fechaInicioDisponible)
+            //    {
+            //        fechaInicioDisponible = reserva.FechaFin.AddDays(1).Date;
+            //    }
 
-                if (reserva.FechaFin < fechaFinDisponible)
-                {
-                    fechaFinDisponible = reserva.FechaInicio.AddDays(-1).Date;
-                }
-            }
+            //    if (reserva.FechaFin < fechaFinDisponible)
+            //    {
+            //        fechaFinDisponible = reserva.FechaInicio.AddDays(-1).Date;
+            //    }
+            //}
 
-            fechaFinDisponible = fechaInicioDisponible.AddDays(60).Date;
+            //fechaFinDisponible = fechaInicioDisponible.AddDays(60).Date;
 
             if (promocionActiva != null && cliente != null && cliente.Frecuencia == "Frecuente")
             {
@@ -154,8 +154,8 @@ namespace HotelTransilvania.Controllers
                     habitacion.Ubicacion,
                     habitacion.Wifi,
                     habitacion.Estado,
-                    FechaDeInicioDisponible = fechaInicioDisponible,
-                    FechaFinDisponible = fechaFinDisponible,
+                  //  FechaDeInicioDisponible = fechaInicioDisponible,
+                  //  FechaFinDisponible = fechaFinDisponible,
                     PrecioConDescuento = precioConDescuento
                 };
 
@@ -179,8 +179,8 @@ namespace HotelTransilvania.Controllers
                     habitacion.Wifi,
                     habitacion.Estado,
                     PrecioConDescuento = habitacion.Precio,
-                    FechaDeInicioDisponible = fechaInicioDisponible,
-                    FechaFinDisponible = fechaFinDisponible
+                   // FechaDeInicioDisponible = fechaInicioDisponible,
+                    //FechaFinDisponible = fechaFinDisponible
                 };
 
                 return habitacionSinDescuento;

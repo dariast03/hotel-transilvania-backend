@@ -26,7 +26,11 @@ namespace HotelTransilvania.Controllers
             {
                 return NotFound();
             }
-            return await _context.Reserva.ToListAsync();
+            return await _context.Reserva
+                .Include(r => r.Habitacion)
+                .Include(r => r.Cliente)
+                .ThenInclude(c => c.Persona)
+                .ToListAsync();
         }
         [HttpGet("pendientes")]
         public async Task<ActionResult<IEnumerable<Reserva>>> GetReservasPendientes()
@@ -35,7 +39,11 @@ namespace HotelTransilvania.Controllers
             {
                 return NotFound();
             }
-            return await _context.Reserva.ToListAsync();
+            return await _context.Reserva
+                  .Include(r => r.Habitacion)
+                .Include(r => r.Cliente)
+                .ThenInclude(c => c.Persona)
+                .ToListAsync();
         }
         // GET: api/Reserva/5
         [HttpGet("{id}")]
@@ -45,7 +53,11 @@ namespace HotelTransilvania.Controllers
             {
                 return NotFound();
             }
-            var reserva = await _context.Reserva.FindAsync(id);
+            var reserva = await _context.Reserva
+                  .Include(r => r.Habitacion)
+                .Include(r =>r.Cliente)
+                .ThenInclude(c => c.Persona)
+                .FirstOrDefaultAsync(r => r.Id ==id);
             if (reserva == null)
             {
                 return NotFound();
@@ -101,16 +113,25 @@ namespace HotelTransilvania.Controllers
             }
             else
             {
-                int frecuencia = Int32.Parse(cliente.Frecuencia);
-                frecuencia++;
-                if (frecuencia >= 3)
+                int frecuencia;
+                if(int.TryParse(cliente.Frecuencia, out frecuencia) && cliente.Frecuencia != "Frecuente")
                 {
-                    cliente.Frecuencia = "Frecuente";
+                    frecuencia++;
+                    if (frecuencia >= 3)
+                    {
+                        cliente.Frecuencia = "Frecuente";
+                    }
+                    else
+                    {
+                        cliente.Frecuencia = frecuencia.ToString();
+                    }
                 }
                 else
                 {
-                    cliente.Frecuencia = frecuencia.ToString();
+                    cliente.Frecuencia = "1";
                 }
+
+             
             }
             _context.Entry(cliente).State = EntityState.Modified;
 
