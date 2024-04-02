@@ -14,12 +14,10 @@ namespace HotelTransilvania.Controllers
     public class ReservaController : ControllerBase
     {
         private readonly RegisterLoginContext _context;
-
         public ReservaController(RegisterLoginContext context)
         {
             _context = context;
         }
-
         // GET: api/Reserva
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Reserva>>> GetReserva()
@@ -30,7 +28,6 @@ namespace HotelTransilvania.Controllers
             }
             return await _context.Reserva.ToListAsync();
         }
-
         [HttpGet("pendientes")]
         public async Task<ActionResult<IEnumerable<Reserva>>> GetReservasPendientes()
         {
@@ -40,7 +37,6 @@ namespace HotelTransilvania.Controllers
             }
             return await _context.Reserva.ToListAsync();
         }
-
         // GET: api/Reserva/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Reserva>> GetReserva(int id)
@@ -50,15 +46,12 @@ namespace HotelTransilvania.Controllers
                 return NotFound();
             }
             var reserva = await _context.Reserva.FindAsync(id);
-
             if (reserva == null)
             {
                 return NotFound();
             }
-
             return reserva;
         }
-
         // PUT: api/Reserva/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -95,7 +88,7 @@ namespace HotelTransilvania.Controllers
             {
                 return NotFound();
             }
-            reserva.Estado = "Reservado";
+            reserva.Estado = "Confirmada";//Confirmada
             _context.Entry(reserva).State = EntityState.Modified;
             var cliente = await _context.Cliente.FindAsync(reserva.IdCliente);
             if (cliente == null)
@@ -136,13 +129,8 @@ namespace HotelTransilvania.Controllers
                     throw;
                 }
             }
-
             return NoContent();
-
         }
-
-
-
         [HttpPut("rechazar/{id}")]
         public async Task<IActionResult> RechazarReserva(int id)
         {
@@ -172,7 +160,6 @@ namespace HotelTransilvania.Controllers
 
             return NoContent();
         }
-
         [HttpPut("cancelar/{id}")]
         public async Task<IActionResult> CancelarReserva(int id)
         {
@@ -229,11 +216,8 @@ namespace HotelTransilvania.Controllers
                     throw;
                 }
             }
-
             return NoContent();
         }
-
-
         // POST: api/Reserva
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
@@ -245,10 +229,8 @@ namespace HotelTransilvania.Controllers
             }
             _context.Reserva.Add(reserva);
             await _context.SaveChangesAsync();
-
             return CreatedAtAction("GetReserva", new { id = reserva.Id }, reserva);
         }
-
         // DELETE: api/Reserva/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReserva(int id)
