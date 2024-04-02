@@ -32,6 +32,22 @@ namespace HotelTransilvania.Controllers
                 .ThenInclude(c => c.Persona)
                 .ToListAsync();
         }
+
+        [HttpGet, Route("me")]
+        public async Task<ActionResult<IEnumerable<Reserva>>> MisReservas()
+        {
+            if (_context.Reserva == null)
+            {
+                return NotFound();
+            }
+            return await _context.Reserva
+                .Include(r => r.Habitacion)
+                .Include(r => r.Cliente)
+                .ThenInclude(c => c.Persona)
+                .Where(r => r.IdCliente == 1)
+                .ToListAsync();
+        }
+
         [HttpGet("pendientes")]
         public async Task<ActionResult<IEnumerable<Reserva>>> GetReservasPendientes()
         {
