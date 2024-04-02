@@ -26,11 +26,28 @@ namespace HotelTransilvania.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Habitacion>>> GetHabitacion()
         {
-          if (_context.Habitacion == null)
-          {
-              return NotFound();
-          }
-            return await _context.Habitacion.ToListAsync();
+            if (_context.Habitacion == null)
+            {
+                return NotFound();
+            }
+            var habitaciones = await _context.Habitacion.ToListAsync();
+            var clientesFrecuentes = _context.Cliente.Where(c => c.Frecuencia == "Frecuente").ToList();
+            var promociones = await _context.Promocion.ToListAsync();
+
+            foreach (var habitacion in habitaciones)
+            {
+                foreach (var cliente in clientesFrecuentes)
+                {
+                    foreach (var promocion in promociones)
+                    {
+                        // Aplica la promoción a la habitación
+                        habitacion.Precio -= habitacion.Precio * promocion.Descuento;
+                    }
+                }
+                _context.Entry(habitacion).State = EntityState.Modified;
+            }
+            await _context.SaveChangesAsync();
+            return habitaciones;
         }
 
         // GET: api/Habitacions/5
