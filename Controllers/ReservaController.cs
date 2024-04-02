@@ -91,6 +91,10 @@ namespace HotelTransilvania.Controllers
         public async Task<IActionResult> ConfirmarReserva(int id)
         {
             var reserva = await _context.Reserva.FindAsync(id);
+            if (reserva == null)
+            {
+                return NotFound();
+            }
             reserva.Estado = "Reservado";
             _context.Entry(reserva).State = EntityState.Modified;
             var cliente = await _context.Cliente.FindAsync(reserva.IdCliente);
@@ -116,10 +120,6 @@ namespace HotelTransilvania.Controllers
                 }
             }
             _context.Entry(cliente).State = EntityState.Modified;
-            if (reserva == null)
-            {
-                return NotFound();
-            }
 
             try
             {
@@ -140,6 +140,7 @@ namespace HotelTransilvania.Controllers
             return NoContent();
 
         }
+
 
 
         [HttpPut("rechazar/{id}")]
