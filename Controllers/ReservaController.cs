@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HotelTransilvania.Context;
 using HotelTransilvania.Models;
-
 namespace HotelTransilvania.Controllers
 {
     [Route("api/[controller]")]
