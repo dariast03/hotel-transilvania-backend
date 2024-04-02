@@ -69,10 +69,8 @@ namespace HotelTransilvania.Controllers
             {
                 return BadRequest();
             }
-
             //   reserva.Estado = "Pendiente"; //Rechazado, Reservado, Cancelado//
             _context.Entry(reserva).State = EntityState.Modified;
-
             try
             {
                 await _context.SaveChangesAsync();
@@ -88,11 +86,8 @@ namespace HotelTransilvania.Controllers
                     throw;
                 }
             }
-
             return NoContent();
         }
-
-
         [HttpPut("confirmar/{id}")]
         public async Task<IActionResult> ConfirmarReserva(int id, Reserva reserva)
         {
@@ -100,9 +95,31 @@ namespace HotelTransilvania.Controllers
             {
                 return BadRequest();
             }
-
             reserva.Estado = "Reservado";
             _context.Entry(reserva).State = EntityState.Modified;
+            var cliente = await _context.Cliente.FindAsync(reserva.IdCliente);
+            if (cliente == null)
+            {
+                return NotFound();
+            }
+            if (cliente.Frecuencia == null)
+            {
+                cliente.Frecuencia = "1";
+            }
+            else
+            {
+                int frecuencia = Int32.Parse(cliente.Frecuencia);
+                frecuencia++;
+                if (frecuencia >= 3)
+                {
+                    cliente.Frecuencia = "Frecuente";
+                }
+                else
+                {
+                    cliente.Frecuencia = frecuencia.ToString();
+                }
+            }
+            _context.Entry(cliente).State = EntityState.Modified;
 
             try
             {
@@ -122,6 +139,8 @@ namespace HotelTransilvania.Controllers
 
             return NoContent();
         }
+
+
 
 
         [HttpPut("rechazar/{id}")]
