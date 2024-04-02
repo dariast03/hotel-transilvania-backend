@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HotelTransilvania.Context;
 using HotelTransilvania.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace HotelTransilvania.Controllers
 {
@@ -126,7 +127,9 @@ namespace HotelTransilvania.Controllers
         {
             public int CantidadPersonas { get; set; }
             public string TipoHabitacion { get; set;}
+            [DataType(DataType.Date)]
             public DateTime FechaInicio { get; set; }
+            [DataType(DataType.Date)]
             public DateTime FechaFin { get; set; }
 
 
@@ -136,15 +139,15 @@ namespace HotelTransilvania.Controllers
         [Route("buscar")]
         public async Task<ActionResult<IEnumerable<Habitacion>>> BuscarHabitacion([FromQuery] FiltroHabitacion filtros)
         {
-            // Obtener las reservas que intersectan con el rango de fechas proporcionado
+            
             var reservasEnFecha = await _context.Reserva
                 .Where(r =>
-                    (r.FechaInicio <= filtros.FechaFin && r.FechaFin >= filtros.FechaInicio) ||
-                    (r.FechaInicio >= filtros.FechaInicio && r.FechaFin <= filtros.FechaFin))
+                    (r.FechaInicio.Date <= filtros.FechaFin.Date && r.FechaFin.Date >= filtros.FechaInicio.Date) ||
+                    (r.FechaInicio.Date >= filtros.FechaInicio.Date && r.FechaFin.Date <= filtros.FechaFin.Date))
                 .Select(r => r.IdHabitacion)
                 .ToListAsync();
 
-            // Obtener las habitaciones que cumplen con los filtros de capacidad y tipo
+            
             var habitacionesDisponibles = await _context.Habitacion
                 .Where(h => h.Capacidad >= filtros.CantidadPersonas)
                 .Where(h => h.Tipo == filtros.TipoHabitacion)
@@ -153,7 +156,7 @@ namespace HotelTransilvania.Controllers
 
             if (habitacionesDisponibles == null || habitacionesDisponibles.Count == 0)
             {
-                return NotFound();
+                return new List <Habitacion>();
             }
 
             return habitacionesDisponibles;
