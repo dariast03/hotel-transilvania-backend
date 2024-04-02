@@ -8,17 +8,10 @@ namespace HotelTransilvania.Models
         public int Id { get; set; }
         [Required(ErrorMessage = "Error, se requiere Descuento.")]
         public float Descuento { get; set; }
-        public int IdCliente { get; set; }
-        [ForeignKey(nameof(IdCliente))]
-        public Cliente Cliente { get; set; }
-
-        public bool AplicaDescuento()
-        {
-            if (Cliente.Frecuencia == "Frecuente")
-            {
-                return true;
-            }
-            return false;
-        }
+        [MinLength(5, ErrorMessage = "La longitud es de minio 5")]
+        public string Estado { get; set; }
+        public int IdRecepcionista { get; set; }
+        [ForeignKey(nameof(IdRecepcionista))]
+        public Recepcionista Recepcionista { get; set; }
     }
 }

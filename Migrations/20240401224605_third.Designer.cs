@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelTransilvania.Migrations
 {
     [DbContext(typeof(RegisterLoginContext))]
-    [Migration("20240401000110_dos")]
-    partial class dos
+    [Migration("20240401224605_third")]
+    partial class third
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
