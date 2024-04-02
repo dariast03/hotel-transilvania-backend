@@ -1,3 +1,4 @@
+using System.Text;
 using HotelTransilvania.Context;
 using HotelTransilvania.Models;
 using HotelTransilvania.Services;
@@ -5,7 +6,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,21 +20,12 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-    };
-});
+// Add EmailService
+var smtpSettings = builder.Configuration.GetSection("SmtpSettings").Get<SmptSettings>();
+builder.Services.AddSingleton(new EmailService(smtpSettings.SmtpServer, smtpSettings.SmtpPort, smtpSettings.SmtpUsername, smtpSettings.SmtpPassword));
 
-// Configuracion SWAGGER PARA AUTENTICACION
+
+// Add Swagger authentication
 builder.Services.AddSwaggerGen(opt =>
 {
     opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -48,7 +39,7 @@ builder.Services.AddSwaggerGen(opt =>
     });
 
     opt.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+   {
         {
             new OpenApiSecurityScheme
             {
@@ -60,22 +51,33 @@ builder.Services.AddSwaggerGen(opt =>
             },
             new string[]{}
         }
-    });
+   });
 });
-
 
 // Route url in lowercase
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
+// Add jwt authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
 
-// Add EmailService
-var smtpSettings = builder.Configuration.GetSection("SmtpSettings").Get<SmptSettings>();
-builder.Services.AddSingleton(new EmailService(smtpSettings.SmtpServer, smtpSettings.SmtpPort, smtpSettings.SmtpUsername, smtpSettings.SmtpPassword));
 
-// Add Cors Config
+// Add Cors
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("ConfigCors",
+    options.AddPolicy("UpdsCors",
            builder => builder
                .WithOrigins(
                "http://localhost:5173",
@@ -93,11 +95,6 @@ builder.Services.AddCors(options =>
                .AllowCredentials());
 });
 
-// Lowercase URL
-builder.Services.AddRouting(options => options.LowercaseUrls = true);
-
-
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -109,11 +106,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseAuthentication();
 
 app.UseAuthorization();
 app.UseCors("ConfigCors");

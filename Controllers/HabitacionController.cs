@@ -162,5 +162,28 @@ namespace HotelTransilvania.Controllers
             return habitacionesDisponibles;
         }
 
+
+        [HttpGet("fechasOcupadas/{idHabitacion}")]
+        public async Task<ActionResult<IEnumerable<DateTime>>> GetFechasOcupadas(int idHabitacion)
+        {
+            var reservas = await _context.Reserva
+                .Where(r => r.IdHabitacion == idHabitacion && r.Estado == "Confirmada")
+                .ToListAsync();
+
+            var fechasOcupadas = new List<DateTime>();
+
+            foreach (var reserva in reservas)
+            {
+                var fechaInicio = reserva.FechaInicio.Date;
+                var fechaFin = reserva.FechaFin.Date;
+
+                for (DateTime fecha = fechaInicio; fecha <= fechaFin; fecha = fecha.AddDays(1))
+                {
+                    fechasOcupadas.Add(fecha);
+                }
+            }
+
+            return Ok(fechasOcupadas.Distinct());
+        }
     }
 }

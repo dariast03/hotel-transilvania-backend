@@ -1,14 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using HotelTransilvania.Services;
-using System.Data;
 using System.Security.Claims;
 using HotelTransilvania.Context;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using HotelTransilvania.Models;
-using Microsoft.CodeAnalysis.Scripting;
-using Org.BouncyCastle.Crypto.Generators;
+
 
 namespace HotelTransilvania.Controllers
 {
@@ -20,22 +17,14 @@ namespace HotelTransilvania.Controllers
         private readonly IJwtService _jwtService;
 
         private readonly RegisterLoginContext _context;
-        private readonly EmailService _emailService;
-        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public AuthController(
             RegisterLoginContext context,
-            IJwtService jwtService,
-            EmailService emailService,
-            IWebHostEnvironment webHostEnvironment
+            IJwtService jwtService
             )
         {
             _context = context;
             _jwtService = jwtService;
-            _emailService = emailService;
-            _webHostEnvironment = webHostEnvironment;
-
-
         }
 
         [HttpPost]
@@ -47,6 +36,8 @@ namespace HotelTransilvania.Controllers
 //            // verificar passwords
 
             Usuario? usuarioEncontrado = await _context.Usuario.FirstOrDefaultAsync(x => x.Correo == loginFormUsuario.Correo);
+
+
 
             bool verifiedPassword = BCrypt.Net.BCrypt.Verify(loginFormUsuario.Contraseña, usuarioEncontrado!.Contraseña);
 
