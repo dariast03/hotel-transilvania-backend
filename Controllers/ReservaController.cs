@@ -60,23 +60,6 @@ namespace HotelTransilvania.Controllers
             return reserva;
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Reserva>> GetPendientes(int id)
-        {
-            if (_context.Reserva == null)
-            {
-                return NotFound();
-            }
-            var reserva = await _context.Reserva.FindAsync(id);
-
-            if (reserva == null)
-            {
-                return NotFound();
-            }
-
-            return reserva;
-        }
-
         // PUT: api/Reserva/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
