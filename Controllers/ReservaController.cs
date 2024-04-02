@@ -60,6 +60,23 @@ namespace HotelTransilvania.Controllers
             return reserva;
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Reserva>> GetPendientes(int id)
+        {
+            if (_context.Reserva == null)
+            {
+                return NotFound();
+            }
+            var reserva = await _context.Reserva.FindAsync(id);
+
+            if (reserva == null)
+            {
+                return NotFound();
+            }
+
+            return reserva;
+        }
+
         // PUT: api/Reserva/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -153,6 +170,67 @@ namespace HotelTransilvania.Controllers
 
             return NoContent();
         }
+
+        [HttpPut("cancelar/{id}")]
+        public async Task<IActionResult> CancelarReserva(int id, Reserva reserva)
+        {
+            if (id != reserva.Id)
+            {
+                return BadRequest();
+            }
+
+            reserva.Estado = "Cancelado";
+            _context.Entry(reserva).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ReservaExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        [HttpPut("espera/{id}")]
+        public async Task<IActionResult> EsperaReserva(int id, Reserva reserva)
+        {
+            if (id != reserva.Id)
+            {
+                return BadRequest();
+            }
+
+            reserva.Estado = "En Espera";
+            _context.Entry(reserva).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ReservaExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
 
         // POST: api/Reserva
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
