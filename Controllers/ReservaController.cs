@@ -94,15 +94,15 @@ namespace HotelTransilvania.Controllers
 
 
         [HttpPut("confirmar/{id}")]
-        public async Task<IActionResult> ConfirmarReserva(int id, Reserva reserva)
+        public async Task<IActionResult> ConfirmarReserva(int id)
         {
-            if (id != reserva.Id)
-            {
-                return BadRequest();
-            }
-
+            var reserva = await _context.Reserva.FindAsync(id);
             reserva.Estado = "Reservado";
             _context.Entry(reserva).State = EntityState.Modified;
+            if (reserva == null)
+            {
+                return NotFound();
+            }
 
             try
             {
@@ -125,15 +125,15 @@ namespace HotelTransilvania.Controllers
 
 
         [HttpPut("rechazar/{id}")]
-        public async Task<IActionResult> RechazarReserva(int id, Reserva reserva)
+        public async Task<IActionResult> RechazarReserva(int id)
         {
-            if (id != reserva.Id)
-            {
-                return BadRequest();
-            }
-
+            var reserva = await _context.Reserva.FindAsync(id);
             reserva.Estado = "Rechazado";
             _context.Entry(reserva).State = EntityState.Modified;
+            if (reserva == null)
+            {
+                return NotFound();
+            }
 
             try
             {
@@ -155,15 +155,15 @@ namespace HotelTransilvania.Controllers
         }
 
         [HttpPut("cancelar/{id}")]
-        public async Task<IActionResult> CancelarReserva(int id, Reserva reserva)
+        public async Task<IActionResult> CancelarReserva(int id)
         {
-            if (id != reserva.Id)
-            {
-                return BadRequest();
-            }
-
+            var reserva = await _context.Reserva.FindAsync(id);
             reserva.Estado = "Cancelado";
             _context.Entry(reserva).State = EntityState.Modified;
+            if (reserva == null)
+            {
+                return NotFound();
+            }
 
             try
             {
@@ -185,15 +185,15 @@ namespace HotelTransilvania.Controllers
         }
 
         [HttpPut("espera/{id}")]
-        public async Task<IActionResult> EsperaReserva(int id, Reserva reserva)
+        public async Task<IActionResult> EsperaReserva(int id)
         {
-            if (id != reserva.Id)
-            {
-                return BadRequest();
-            }
-
+            var reserva = await _context.Reserva.FindAsync(id);
             reserva.Estado = "En Espera";
             _context.Entry(reserva).State = EntityState.Modified;
+            if (reserva == null)
+            {
+                return NotFound();
+            }
 
             try
             {
