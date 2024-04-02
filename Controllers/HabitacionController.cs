@@ -31,37 +31,75 @@ namespace HotelTransilvania.Controllers
             {
                 return NotFound();
             }
+
+            var userIdClaim = HttpContext.User.FindFirst("Id")?.Value;
+            int? userId = userIdClaim != null ? int.Parse(userIdClaim) : null;
+
+            var cliente = userId.HasValue ? await _context.Cliente.FirstOrDefaultAsync(c => c.IdUsuario == userId) : null;
+
+            var promocionActiva = await _context.Promocion
+                                .OrderByDescending(p => p.Id)
+                                .FirstOrDefaultAsync();
+
             var habitaciones = await _context.Habitacion.ToListAsync();
-            var clientesFrecuentes = _context.Cliente.Where(c => c.Frecuencia == "Frecuente").ToList();
-            var promociones = await _context.Promocion.ToListAsync();
 
             var habitacionesConDescuento = new List<object>();
 
-            foreach (var habitacion in habitaciones)
+            if (promocionActiva != null && cliente != null && cliente.Frecuencia == "Frecuente")
             {
-                var precioConDescuento = habitacion.Precio;
-                foreach (var cliente in clientesFrecuentes)
+                foreach (var habitacion in habitaciones)
                 {
-                    foreach (var promocion in promociones)
+                    float precioConDescuento = habitacion.Precio;
+
+                    if (cliente.Frecuencia == "Frecuente")
                     {
-                        // Aplica la promoción a la habitación
-                        precioConDescuento -= precioConDescuento * promocion.Descuento;
+                        precioConDescuento -= precioConDescuento * promocionActiva.Descuento;
                     }
+
+                    habitacionesConDescuento.Add(new
+                    {
+                        habitacion.Id,
+                        habitacion.Codigo,
+                        habitacion.Nombre,
+                        habitacion.Capacidad,
+                        habitacion.Tipo,
+                        habitacion.Precio,
+                        habitacion.Imagen,
+                        habitacion.NroBaños,
+                        habitacion.NroCamas,
+                        habitacion.NroCuartos,
+                        habitacion.Ubicacion,
+                        habitacion.Wifi,
+                        habitacion.Estado,
+                        PrecioConDescuento = precioConDescuento
+                    });
                 }
-                habitacionesConDescuento.Add(new { habitacion, precioConDescuento });
+
+                return habitacionesConDescuento;
             }
-            return habitacionesConDescuento;
+            else
+            {
+                return habitaciones;
+            }
+
+
+
+            return new List<Habitacion>();
         }
 
 
-        // GET: api/Habitacions/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Habitacion>> GetHabitacion(int id)
+        public async Task<ActionResult<object>> GetHabitacion(int id)
         {
-          if (_context.Habitacion == null)
-          {
-              return NotFound();
-          }
+            var userIdClaim = HttpContext.User.FindFirst("Id")?.Value;
+            int? userId = userIdClaim != null ? int.Parse(userIdClaim) : null;
+
+            var cliente = userId.HasValue ? await _context.Cliente.FirstOrDefaultAsync(c => c.IdUsuario == userId) : null;
+
+            var promocionActiva = await _context.Promocion
+                                                .OrderByDescending(p => p.Id)
+                                                .FirstOrDefaultAsync();
+
             var habitacion = await _context.Habitacion.FindAsync(id);
 
             if (habitacion == null)
@@ -69,8 +107,86 @@ namespace HotelTransilvania.Controllers
                 return NotFound();
             }
 
-            return habitacion;
+            var reservas = await _context.Reserva
+                                .Where(r => r.IdHabitacion == id && r.Estado == "Confirmada")
+                                .OrderBy(r => r.FechaInicio)
+                                .ToListAsync();
+
+            DateTime fechaInicioDisponible = DateTime.Now.Date;
+            DateTime fechaFinDisponible = DateTime.MaxValue.Date;
+
+            foreach (var reserva in reservas)
+            {
+                if (reserva.FechaInicio > fechaInicioDisponible)
+                {
+                    fechaInicioDisponible = reserva.FechaFin.AddDays(1).Date;
+                }
+
+                if (reserva.FechaFin < fechaFinDisponible)
+                {
+                    fechaFinDisponible = reserva.FechaInicio.AddDays(-1).Date;
+                }
+            }
+
+            fechaFinDisponible = fechaInicioDisponible.AddDays(60).Date;
+
+            if (promocionActiva != null && cliente != null && cliente.Frecuencia == "Frecuente")
+            {
+                float precioConDescuento = habitacion.Precio;
+
+                if (cliente.Frecuencia == "Frecuente")
+                {
+                    precioConDescuento -= precioConDescuento * promocionActiva.Descuento;
+                }
+
+                var habitacionConDescuento = new
+                {
+                    habitacion.Id,
+                    habitacion.Codigo,
+                    habitacion.Nombre,
+                    habitacion.Capacidad,
+                    habitacion.Tipo,
+                    habitacion.Precio,
+                    habitacion.Imagen,
+                    habitacion.NroBaños,
+                    habitacion.NroCamas,
+                    habitacion.NroCuartos,
+                    habitacion.Ubicacion,
+                    habitacion.Wifi,
+                    habitacion.Estado,
+                    FechaDeInicioDisponible = fechaInicioDisponible,
+                    FechaFinDisponible = fechaFinDisponible,
+                    PrecioConDescuento = precioConDescuento
+                };
+
+                return habitacionConDescuento;
+            }
+            else
+            {
+                var habitacionSinDescuento = new
+                {
+                    habitacion.Id,
+                    habitacion.Codigo,
+                    habitacion.Nombre,
+                    habitacion.Capacidad,
+                    habitacion.Tipo,
+                    habitacion.Precio,
+                    habitacion.Imagen,
+                    habitacion.NroBaños,
+                    habitacion.NroCamas,
+                    habitacion.NroCuartos,
+                    habitacion.Ubicacion,
+                    habitacion.Wifi,
+                    habitacion.Estado,
+                    PrecioConDescuento = habitacion.Precio,
+                    FechaDeInicioDisponible = fechaInicioDisponible,
+                    FechaFinDisponible = fechaFinDisponible
+                };
+
+                return habitacionSinDescuento;
+            }
         }
+
 
         // PUT: api/Habitacion/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -108,10 +224,10 @@ namespace HotelTransilvania.Controllers
         [HttpPost]
         public async Task<ActionResult<Habitacion>> PostHabitacion(Habitacion habitacion)
         {
-          if (_context.Habitacion == null)
-          {
-              return Problem("Entity set 'RegisterLoginContext.Habitacion'  is null.");
-          }
+            if (_context.Habitacion == null)
+            {
+                return Problem("Entity set 'RegisterLoginContext.Habitacion'  is null.");
+            }
             _context.Habitacion.Add(habitacion);
             await _context.SaveChangesAsync();
 
@@ -147,7 +263,7 @@ namespace HotelTransilvania.Controllers
         public class FiltroHabitacion
         {
             public int CantidadPersonas { get; set; }
-            public string TipoHabitacion { get; set;}
+            public string TipoHabitacion { get; set; }
             [DataType(DataType.Date)]
             public DateTime FechaInicio { get; set; }
             [DataType(DataType.Date)]
@@ -160,7 +276,7 @@ namespace HotelTransilvania.Controllers
         [Route("buscar")]
         public async Task<ActionResult<IEnumerable<Habitacion>>> BuscarHabitacion([FromQuery] FiltroHabitacion filtros)
         {
-            
+
             var reservasEnFecha = await _context.Reserva
                 .Where(r =>
                     (r.FechaInicio.Date <= filtros.FechaFin.Date && r.FechaFin.Date >= filtros.FechaInicio.Date) ||
@@ -168,7 +284,7 @@ namespace HotelTransilvania.Controllers
                 .Select(r => r.IdHabitacion)
                 .ToListAsync();
 
-            
+
             var habitacionesDisponibles = await _context.Habitacion
                 .Where(h => h.Capacidad >= filtros.CantidadPersonas)
                 .Where(h => h.Tipo == filtros.TipoHabitacion)
@@ -177,7 +293,7 @@ namespace HotelTransilvania.Controllers
 
             if (habitacionesDisponibles == null || habitacionesDisponibles.Count == 0)
             {
-                return new List <Habitacion>();
+                return new List<Habitacion>();
             }
 
             return habitacionesDisponibles;

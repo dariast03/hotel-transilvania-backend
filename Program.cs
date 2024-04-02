@@ -77,7 +77,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Add Cors
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("UpdsCors",
+    options.AddPolicy("ConfigCors",
            builder => builder
                .WithOrigins(
                "http://localhost:5173",
