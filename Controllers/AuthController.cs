@@ -10,33 +10,33 @@ using HotelTransilvania.Models;
 using Microsoft.CodeAnalysis.Scripting;
 using Org.BouncyCastle.Crypto.Generators;
 
-namespace HotelTransilvania.Controllers
-{
-    [ApiController]
-    [Route("api/[controller]")]
+//namespace HotelTransilvania.Controllers
+//{
+//    [ApiController]
+//    [Route("api/[controller]")]
 
-    public class AuthController : ControllerBase
-    {
-        private readonly IJwtService _jwtService;
+//    public class AuthController : ControllerBase
+//    {
+//        private readonly IJwtService _jwtService;
 
-        private readonly RegisterLoginContext _context;
-        private readonly EmailService _emailService;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+//        private readonly RegisterLoginContext _context;
+//        private readonly EmailService _emailService;
+//        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public AuthController(
-            RegisterLoginContext context,
-            IJwtService jwtService,
-            EmailService emailService,
-            IWebHostEnvironment webHostEnvironment
-            )
-        {
-            _context = context;
-            _jwtService = jwtService;
-            _emailService = emailService;
-            _webHostEnvironment = webHostEnvironment;
+//        public AuthController(
+//            RegisterLoginContext context,
+//            IJwtService jwtService,
+//            EmailService emailService,
+//            IWebHostEnvironment webHostEnvironment
+//            )
+//        {
+//            _context = context;
+//            _jwtService = jwtService;
+//            _emailService = emailService;
+//            _webHostEnvironment = webHostEnvironment;
 
 
-        }
+//        }
 
         [HttpPost]
         [Route("login")]
@@ -44,7 +44,7 @@ namespace HotelTransilvania.Controllers
         {
             //TODO: buscar usuario por correo
 
-            // verificar passwords
+//            // verificar passwords
 
             Usuario? usuarioEncontrado = await _context.Usuario.FirstOrDefaultAsync(x => x.Correo == loginFormUsuario.Correo);
 
@@ -61,16 +61,16 @@ namespace HotelTransilvania.Controllers
                 });
             }
 
-            return Ok(new
-            {
-                status = StatusCodes.Status200OK,
-                data = new
-                {
-                    usuario = usuarioEncontrado,
-                    token = _jwtService.GenerateToken(usuarioEncontrado)
-                }
-            });
-        }
+//            return Ok(new
+//            {
+//                status = StatusCodes.Status200OK,
+//                data = new
+//                {
+//                    usuario = usuarioEncontrado,
+//                    token = _jwtService.GenerateToken(usuarioEncontrado)
+//                }
+//            });
+//        }
 
         [HttpGet, Authorize]
         [Route("Refresh")]
@@ -78,7 +78,7 @@ namespace HotelTransilvania.Controllers
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
 
-            int idUsuario = int.Parse(identity.Claims.FirstOrDefault(c => c.Type == "Id").Value);
+//            int idUsuario = int.Parse(identity.Claims.FirstOrDefault(c => c.Type == "Id").Value);
 
             Usuario? usuarioEncontrado = await _context.Usuario.FirstOrDefaultAsync(x => x.Id == idUsuario);
 
@@ -92,18 +92,18 @@ namespace HotelTransilvania.Controllers
                 });
             }
 
-            //buscar usuario por id
+//            //buscar usuario por id
 
 
-            if (usuarioEncontrado == null)
-            {
-                return Unauthorized(new
-                {
-                    status = StatusCodes.Status401Unauthorized,
-                    code = "INVALID_TOKEN",
-                    msg = "Token inválido o expirado"
-                });
-            }
+//            if (usuarioEncontrado == null)
+//            {
+//                return Unauthorized(new
+//                {
+//                    status = StatusCodes.Status401Unauthorized,
+//                    code = "INVALID_TOKEN",
+//                    msg = "Token inválido o expirado"
+//                });
+//            }
 
             return Ok(new
             {
@@ -115,7 +115,7 @@ namespace HotelTransilvania.Controllers
                 }
             });
 
-        }
+//        }
 
 
 
@@ -145,15 +145,15 @@ namespace HotelTransilvania.Controllers
 
 
 
-            return Ok(new
-            {
-                status = StatusCodes.Status200OK,
-                data = new
-                {
-                    usuario,
-                    token = _jwtService.GenerateToken(usuario)
-                }
-            });
-        }
-    }
-}
+//            return Ok(new
+//            {
+//                status = StatusCodes.Status200OK,
+//                data = new
+//                {
+//                    usuario,
+//                    token = _jwtService.GenerateToken(usuario)
+//                }
+//            });
+//        }
+//    }
+//}
