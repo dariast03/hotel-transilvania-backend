@@ -29,7 +29,10 @@ namespace HotelTransilvania.Controllers
           {
               return NotFound();
           }
-            return await _context.Cliente.ToListAsync();
+            return await _context.Cliente
+                .Include(c => c.Usuario)
+                .Include(c => c.Persona)
+                .ToListAsync();
         }
 
         // GET: api/Cliente/5

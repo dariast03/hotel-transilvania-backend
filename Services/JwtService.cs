@@ -27,10 +27,9 @@ namespace HotelTransilvania.Services
 
             var claims = new Claim[]
             {
-                new Claim("Id", "24"),
-                new Claim(JwtRegisteredClaimNames.Sub, usuario.Correo.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, "SOME_EMAIL"),
-                new Claim(JwtRegisteredClaimNames.Name,"SOME_NAME")
+                new ("Id", usuario.Id.ToString()),
+                new (ClaimTypes.Role, usuario.Rol),
+                new (JwtRegisteredClaimNames.Email, usuario.Correo.ToString()),
             };
 
             var signingCredentials = new SigningCredentials(

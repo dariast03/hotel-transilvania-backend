@@ -33,7 +33,7 @@ namespace HotelTransilvania.Controllers
         {
             //TODO: buscar usuario por correo
 
-//            // verificar passwords
+            //            // verificar passwords
 
             Usuario? usuarioEncontrado = await _context.Usuario.FirstOrDefaultAsync(x => x.Correo == loginFormUsuario.Correo);
 
@@ -71,22 +71,10 @@ namespace HotelTransilvania.Controllers
 
             int idUsuario = int.Parse(identity.Claims.FirstOrDefault(c => c.Type == "Id").Value);
 
-            Usuario? usuarioEncontrado = await _context.Usuario.FirstOrDefaultAsync(x => x.Id == idUsuario);
-
-            if (idUsuario == 0)
-            {
-                return Unauthorized(new
-                {
-                    status = StatusCodes.Status401Unauthorized,
-                    code = "SESSION_EXPIRED",
-                    msg = "La sesión ha caducado"
-                });
-            }
-
-            //buscar usuario por id
+            Usuario? usuario = await _context.Usuario.FirstOrDefaultAsync(x => x.Id == idUsuario);
 
 
-            if (usuarioEncontrado == null)
+            if (usuario == null)
             {
                 return Unauthorized(new
                 {
@@ -101,8 +89,8 @@ namespace HotelTransilvania.Controllers
                 status = StatusCodes.Status200OK,
                 data = new
                 {
-                    usuario = usuarioEncontrado,
-                    token = _jwtService.GenerateToken(usuarioEncontrado)
+                     usuario,
+                    token = _jwtService.GenerateToken(usuario)
                 }
             });
 
