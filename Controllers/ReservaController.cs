@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HotelTransilvania.Context;
 using HotelTransilvania.Models;
+using System.Security.Claims;
 namespace HotelTransilvania.Controllers
 {
     [Route("api/[controller]")]
@@ -40,11 +41,18 @@ namespace HotelTransilvania.Controllers
             {
                 return NotFound();
             }
+
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+
+            int idUsuario = int.Parse(identity.Claims.FirstOrDefault(c => c.Type == "Id").Value);
+
+            Cliente? cliente = await _context.Cliente.FirstOrDefaultAsync(x => x.IdUsuario == idUsuario);
+
             return await _context.Reserva
                 .Include(r => r.Habitacion)
                 .Include(r => r.Cliente)
                 .ThenInclude(c => c.Persona)
-                .Where(r => r.IdCliente == 1)
+                .Where(r => r.IdCliente == cliente.Id)
                 .ToListAsync();
         }
 
@@ -264,6 +272,8 @@ namespace HotelTransilvania.Controllers
             {
                 return Problem("Entity set 'RegisterLoginContext.Reserva'  is null.");
             }
+
+
             _context.Reserva.Add(reserva);
             await _context.SaveChangesAsync();
             return CreatedAtAction("GetReserva", new { id = reserva.Id }, reserva);

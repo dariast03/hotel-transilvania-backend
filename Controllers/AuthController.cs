@@ -35,14 +35,9 @@ namespace HotelTransilvania.Controllers
 
             //            // verificar passwords
 
-            Usuario? usuarioEncontrado = await _context.Usuario.FirstOrDefaultAsync(x => x.Correo == loginFormUsuario.Correo);
+            Usuario? usuario = await _context.Usuario.FirstOrDefaultAsync(x => x.Correo == loginFormUsuario.Correo);
 
-
-
-            bool verifiedPassword = BCrypt.Net.BCrypt.Verify(loginFormUsuario.Contraseña, usuarioEncontrado!.Contraseña);
-
-
-            if (usuarioEncontrado is null)
+            if (usuario is null)
             {
                 return BadRequest(new
                 {
@@ -52,19 +47,63 @@ namespace HotelTransilvania.Controllers
                 });
             }
 
+            bool verifiedPassword = BCrypt.Net.BCrypt.Verify(loginFormUsuario.Contraseña, usuario!.Contraseña);
+
+            if (!verifiedPassword)
+            {
+                return BadRequest(new
+                {
+                    status = 400,
+                    code = "INVALID_CREDENTIALS",
+                    msg = "Usuario o contraseña incorrectas"
+                });
+            }
+
+            object perfil;
+            if (usuario.Rol == "CLIENTE")
+            {
+                perfil = await _context.Cliente
+                    .Include(c => c.Persona)
+                    .FirstOrDefaultAsync(x => x.IdUsuario == usuario.Id);
+            }
+            else if (usuario.Rol == "RECEPCIONISTA")
+            {
+                perfil = await _context.Recepcionista
+                    .Include(c => c.Persona)
+                    .FirstOrDefaultAsync(x => x.IdUsuario == usuario.Id);
+            }
+            else
+            {
+                return BadRequest(new
+                {
+                    status = 400,
+                    code = "INVALID_PROFILE",
+                    msg = "Perfil de usuario no válido"
+                });
+            }
+
+
             return Ok(new
             {
                 status = StatusCodes.Status200OK,
                 data = new
                 {
-                    usuario = usuarioEncontrado,
-                    token = _jwtService.GenerateToken(usuarioEncontrado)
+                    usuario = new
+                    {
+                        usuario.Id,
+                        usuario.Correo,
+                        usuario.Contraseña,
+                        usuario.Rol,
+                        usuario.Estado,
+                        perfil
+                    },
+                    token = _jwtService.GenerateToken(usuario)
                 }
             });
         }
 
         [HttpGet, Authorize]
-        [Route("Refresh")]
+        [Route("refresh")]
         public async Task<ActionResult> GetProfile()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
@@ -84,12 +123,43 @@ namespace HotelTransilvania.Controllers
                 });
             }
 
+            object perfil;
+            if (usuario.Rol == "CLIENTE")
+            {
+                perfil = await _context.Cliente
+                    .Include(c => c.Persona)
+                    .FirstOrDefaultAsync(x => x.IdUsuario == usuario.Id);
+            }
+            else if (usuario.Rol == "RECEPCIONISTA")
+            {
+                perfil = await _context.Recepcionista
+                    .Include(c => c.Persona)
+                    .FirstOrDefaultAsync(x => x.IdUsuario == usuario.Id);
+            }
+            else
+            {
+                return BadRequest(new
+                {
+                    status = 400,
+                    code = "INVALID_PROFILE",
+                    msg = "Perfil de usuario no válido"
+                });
+            }
+
             return Ok(new
             {
                 status = StatusCodes.Status200OK,
                 data = new
                 {
-                     usuario,
+                    usuario = new
+                    {
+                        usuario.Id,
+                        usuario.Correo,
+                        usuario.Contraseña,
+                        usuario.Rol,
+                        usuario.Estado,
+                         perfil
+                    },
                     token = _jwtService.GenerateToken(usuario)
                 }
             });
@@ -111,17 +181,38 @@ namespace HotelTransilvania.Controllers
                 });
             }
 
+            cliente.Usuario.Rol = "CLIENTE";
             cliente.Usuario.Contraseña = BCrypt.Net.BCrypt.HashPassword(cliente.Usuario.Contraseña);
 
 
             _context.Cliente.Add(cliente);
             await _context.SaveChangesAsync();
 
-
-
-
             Usuario? usuario = await _context.Usuario.FirstOrDefaultAsync(x => x.Id == cliente.Usuario.Id);
 
+            object perfil;
+            if (usuario.Rol == "CLIENTE")
+            {
+                perfil = await _context.Cliente
+                    .Include(c => c.Persona)
+                    .FirstOrDefaultAsync(x => x.IdUsuario == usuario.Id);
+            }
+            else if (usuario.Rol == "RECEPCIONISTA")
+            {
+                perfil = await _context.Recepcionista
+                    .Include(c => c.Persona)
+                    .FirstOrDefaultAsync(x => x.IdUsuario == usuario.Id);
+            }
+            else
+            {
+                return BadRequest(new
+                {
+                    status = 400,
+                    code = "INVALID_PROFILE",
+                    msg = "Perfil de usuario no válido"
+                });
+            }
+           
 
 
             return Ok(new
@@ -129,7 +220,15 @@ namespace HotelTransilvania.Controllers
                 status = StatusCodes.Status200OK,
                 data = new
                 {
-                    usuario,
+                    usuario = new
+                    {
+                        usuario.Id,
+                        usuario.Correo,
+                        usuario.Contraseña,
+                        usuario.Rol,
+                        usuario.Estado,
+                        perfil
+                    },
                     token = _jwtService.GenerateToken(usuario)
                 }
             });
