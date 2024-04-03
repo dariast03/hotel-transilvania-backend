@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HotelTransilvania.Context;
 using HotelTransilvania.Models;
 using System.Security.Claims;
+using HotelTransilvania.Services;
 namespace HotelTransilvania.Controllers
 {
     [Route("api/[controller]")]
@@ -15,9 +11,11 @@ namespace HotelTransilvania.Controllers
     public class ReservaController : ControllerBase
     {
         private readonly RegisterLoginContext _context;
-        public ReservaController(RegisterLoginContext context)
+        private readonly EmailService _emailService;
+        public ReservaController(RegisterLoginContext context, EmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
         // GET: api/Reserva
         [HttpGet]
@@ -97,11 +95,14 @@ namespace HotelTransilvania.Controllers
             {
                 return BadRequest();
             }
-            //   reserva.Estado = "Pendiente"; //Rechazado, Reservado, Cancelado//
+
+             //  reserva.Estado = "Pendiente"; //Rechazado, Reservado, Cancelado/
             _context.Entry(reserva).State = EntityState.Modified;
             try
             {
                 await _context.SaveChangesAsync();
+
+              
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -127,6 +128,8 @@ namespace HotelTransilvania.Controllers
             reserva.Estado = "Confirmada";//Confirmada
             _context.Entry(reserva).State = EntityState.Modified;
             var cliente = await _context.Cliente.FindAsync(reserva.IdCliente);
+            var habitacion = await _context.Habitacion.FindAsync(reserva.IdHabitacion);
+
             if (cliente == null)
             {
                 return NotFound();
@@ -162,6 +165,9 @@ namespace HotelTransilvania.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+
+
+                _ = _emailService.SendEmailAsync(cliente.Usuario.Correo, "Reserva Confirmada", $"Tu reserva de {habitacion.Nombre}  para las fechas {reserva.FechaInicio}-{reserva.FechaFin} ha sido aprobada con exito");
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -181,6 +187,12 @@ namespace HotelTransilvania.Controllers
         {
             var reserva = await _context.Reserva.FindAsync(id);
             reserva.Estado = "Rechazado";
+
+            var cliente = await _context.Cliente.FindAsync(reserva.IdCliente);
+            var habitacion = await _context.Habitacion.FindAsync(reserva.IdHabitacion);
+            
+
+
             _context.Entry(reserva).State = EntityState.Modified;
             if (reserva == null)
             {
@@ -190,6 +202,7 @@ namespace HotelTransilvania.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                _ = _emailService.SendEmailAsync(cliente.Usuario.Correo, "Reserva Confirmada", $"Tu reserva de {habitacion.Nombre}  para las fechas {reserva.FechaInicio}-{reserva.FechaFin} ha sido rechazada PIPIPI. ");
             }
             catch (DbUpdateConcurrencyException)
             {

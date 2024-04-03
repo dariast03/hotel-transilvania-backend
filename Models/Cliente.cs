@@ -9,7 +9,6 @@ namespace HotelTransilvania.Models
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Error, se requiere Nacionalidad.")]
-        [MinLength(2, ErrorMessage = "La longitud mínima de la Nacionalidad debe ser de dos caracteres.")]
         public string Nacionalidad { get; set; } = null!;
 
         public string? Frecuencia { get; set; }
