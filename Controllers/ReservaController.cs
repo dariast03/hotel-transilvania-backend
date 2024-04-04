@@ -4,6 +4,7 @@ using HotelTransilvania.Context;
 using HotelTransilvania.Models;
 using System.Security.Claims;
 using HotelTransilvania.Services;
+using Microsoft.AspNetCore.Authorization;
 namespace HotelTransilvania.Controllers
 {
     [Route("api/[controller]")]
@@ -33,6 +34,7 @@ namespace HotelTransilvania.Controllers
         }
 
         [HttpGet, Route("me")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Reserva>>> MisReservas()
         {
             if (_context.Reserva == null)
@@ -42,7 +44,7 @@ namespace HotelTransilvania.Controllers
 
             var identity = HttpContext.User.Identity as ClaimsIdentity;
 
-            int idUsuario = int.Parse(identity.Claims.FirstOrDefault(c => c.Type == "Id").Value);
+            int idUsuario = int.Parse(identity.Claims?.FirstOrDefault(c => c.Type == "Id")?.Value);
 
             Cliente? cliente = await _context.Cliente.FirstOrDefaultAsync(x => x.IdUsuario == idUsuario);
 
@@ -127,7 +129,9 @@ namespace HotelTransilvania.Controllers
             }
             reserva.Estado = "Confirmada";//Confirmada
             _context.Entry(reserva).State = EntityState.Modified;
-            var cliente = await _context.Cliente.FindAsync(reserva.IdCliente);
+            var cliente = await _context.Cliente
+                .Include(c => c.Usuario)
+                .FirstOrDefaultAsync(c => c.Id == reserva.IdCliente);
             var habitacion = await _context.Habitacion.FindAsync(reserva.IdHabitacion);
 
             if (cliente == null)
@@ -167,7 +171,7 @@ namespace HotelTransilvania.Controllers
                 await _context.SaveChangesAsync();
 
 
-                _ = _emailService.SendEmailAsync(cliente.Usuario.Correo, "Reserva Confirmada", $"Tu reserva de {habitacion.Nombre}  para las fechas {reserva.FechaInicio}-{reserva.FechaFin} ha sido aprobada con exito");
+                _ = _emailService.SendEmailAsync(cliente?.Usuario?.Correo, "Reserva Confirmada", $"Tu reserva de {habitacion?.Nombre}  para las fechas {reserva.FechaInicio}-{reserva.FechaFin} ha sido aprobada con exito");
             }
             catch (DbUpdateConcurrencyException)
             {
