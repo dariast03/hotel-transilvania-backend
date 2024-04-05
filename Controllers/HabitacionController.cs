@@ -136,7 +136,7 @@ namespace HotelTransilvania.Controllers
 
                 if (cliente.Frecuencia == "Frecuente")
                 {
-                    precioConDescuento -= precioConDescuento * promocionActiva.Descuento;
+                    precioConDescuento -= (precioConDescuento * promocionActiva.Descuento) / 100;
                 }
 
                 var habitacionConDescuento = new

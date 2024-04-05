@@ -88,7 +88,8 @@ builder.Services.AddCors(options =>
                                   "http://192.168.0.12:5173",
                "http://localhost:4173",
                "http://127.0.0.1:4173",
-               "https://tarija.upds.edu.bo"
+               "https://tarija.upds.edu.bo",
+               "https://hotel-transilvania.netlify.app"
                )
                .AllowAnyMethod()
                .AllowAnyHeader()
